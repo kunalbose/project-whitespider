@@ -1,0 +1,165 @@
+.sidebar {
+    padding: 16px;
+    background-color: #1a1a1a;
+    color: white;
+    height: 100%;
+    overflow-y: auto;
+  }
+  
+  .tabs {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 16px;
+  }
+  
+  .tab {
+    position: relative;
+    cursor: pointer;
+    padding: 8px 12px;
+    font-weight: bold;
+    color: #aaa;
+  }
+  
+  .activeTab {
+    color: white;
+    border-bottom: 2px solid yellow;
+  }
+  
+  .badge {
+    position: absolute;
+    top: -4px;
+    right: -8px;
+    background-color: #007aff;
+    color: white;
+    border-radius: 9999px;
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  
+  .search {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+  }
+  
+  .filterButtons button {
+    background: #333;
+    color: #eee;
+    margin-right: 6px;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .contactList {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .contactItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #2a2a2a;
+    padding: 8px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+  }
+  
+  .contactText p {
+    margin: 0;
+    font-weight: bold;
+  }
+  
+  .contactText small {
+    color: #aaa;
+  }
+  
+  .greenDot {
+    width: 10px;
+    height: 10px;
+    background: limegreen;
+    border-radius: 50%;
+    margin-left: auto;
+  }
+  
+  .redDot {
+    background: red;
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    padding: 2px 6px;
+    margin-left: auto;
+  }
+
+  .contactItem {
+    padding: 12px;
+    border-left: 4px solid transparent;
+    transition: background 0.3s ease;
+    transition: background-color 0.5s ease;
+    cursor: pointer;
+    display:flex;
+  }
+  
+  .interested {
+    border-left-color: #28a745; /* green */
+  }
+  
+  .notInterested {
+    border-left-color: #dc3545; /* red */
+  }
+  
+  .infoRequest {
+    border-left-color: #007bff; /* blue */
+  }
+  
+  .outOfOffice {
+    border-left-color: #ffc107; /* yellow */
+  }
+  
+  .needsFollowUp {
+    border-left-color: #fd7e14; /* orange */
+  }
+
+  .activeContact {
+    background-color: #536f70; /* slightly lighter than background */
+
+  }
+  .contactItem:hover {
+    background-color: #676767;
+  }
+
+  .name {
+    font-weight: bold;
+    color: #fff;
+    margin: 0;
+  }
+  
+  .time {
+    font-size: 12px;
+    color: #dfdfdf;
+  }
+
+  .email {
+    font-size: 12px;
+    color: #ccc;
+    margin-top: 2px;
+  }
+
+  .timeDiv{
+    margin-left: auto;
+  }
+    
+  
