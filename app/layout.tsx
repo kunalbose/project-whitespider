@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Scaling Room OS",
-  description: "Sabo and Team's operations management",
+  title: "White Spider",
+  description: "Main functions introduced here.",
 };
 
 export default function RootLayout({
