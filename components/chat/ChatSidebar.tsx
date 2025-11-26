@@ -108,7 +108,7 @@ export default function ChatSidebar() {
       </div> */}
 
       <div className={styles.contactList}>
-        {reply_thread.map((c) => (
+        {reply_thread?.map((c) => (
           <div key={c.id} onClick={() => selectChat(c.id as number)} className={`${styles.contactItem} ${getSentimentClass(c.thread_sentiment)} ${chat_id === c.id ? styles.activeContact : ''}`}>
             {/* <img src={c.avatar_url} className={styles.avatar} /> */}
             <div className={styles.contactText}>

@@ -33,8 +33,8 @@ export default function ChatPage() {
         <div className="flex-1 overflow-y-auto px-6 py-4">
           <div className="space-y-4">
             {messages?.length > 0 ? messages.map(m => (
-              m.type.includes('reply') ? <ChatMessageBubble key={m.id} type="incoming" text={m.html_body} time={m.email_sent_at} />
-                                        : <ChatMessageBubble key={m.id} type="outgoing" text={m.html_body} time={m.email_sent_at} />
+              m.type.includes('reply') ? <ChatMessageBubble key={m.id} type="incoming" text={m.body} time={m.email_sent_at} />
+                : <ChatMessageBubble key={m.id} type="outgoing" text={m.body} time={m.email_sent_at} />
             )) : <></>}
 
           </div>
