@@ -54,6 +54,7 @@ export async function getAllCampaignsTodayStats(
   clientSequencerId?: number
 ): Promise<CampaignWithTodayStats[]> {
   const today = new Date().toISOString().split("T")[0];
+  // const today = '2025-11-19'
 
   // 1) Call RPC – this returns { status, stats: [...] }
   const { data: statsData, error: statsError } = await supabase.rpc("get_campaign_stats", {

@@ -15,7 +15,7 @@ export default function CampaignStatsPage() {
   const { selectedClientID, selectedClientSequencerID, setSelectedClientID, setSelectedClientSequencerID } = useDashboardStore();
   const [campaigns, setCampaigns] = useState<CampaignWithTodayStats[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Filter and sort states
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,7 +54,7 @@ export default function CampaignStatsPage() {
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(c => 
+      filtered = filtered.filter(c =>
         c.campaign_name.toLowerCase().includes(query) ||
         c.client_name?.toLowerCase().includes(query)
       );
@@ -116,7 +116,7 @@ export default function CampaignStatsPage() {
   };
 
   return (
-    <div className="p-6 bg-[#0f0f0f] text-white min-h-screen">
+    <div className="p-6 bg-[#0f0f0f] text-white" style={{ height: 'calc(100vh - 61px)' }}>
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -128,9 +128,9 @@ export default function CampaignStatsPage() {
         {/* Filters and Controls */}
         <div className="flex flex-wrap items-center gap-4 mb-4">
           <ClientSelector />
-          <ClientSequencerSelector/>
+          <ClientSequencerSelector />
           <button>Clear Client and Sequencer</button>
-          
+
           <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
             <SelectTrigger className="w-40 bg-gray-800 border-gray-700 text-white">
               <SelectValue placeholder="Status" />
@@ -161,11 +161,10 @@ export default function CampaignStatsPage() {
               <button
                 key={field}
                 onClick={() => handleSortChange(field)}
-                className={`px-3 py-1 rounded transition ${
-                  sortField === field
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
+                className={`px-3 py-1 rounded transition ${sortField === field
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  }`}
               >
                 {field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 {sortField === field && (
@@ -204,13 +203,12 @@ export default function CampaignStatsPage() {
                         <p className="text-sm text-gray-400">{campaign.client_name}</p>
                       </div>
                       <span
-                        className={`px-2 py-1 rounded text-xs ${
-                          campaign.status === 'active'
-                            ? 'bg-green-900/50 text-green-300'
-                            : campaign.status === 'paused'
+                        className={`px-2 py-1 rounded text-xs ${campaign.status === 'active'
+                          ? 'bg-green-900/50 text-green-300'
+                          : campaign.status === 'paused'
                             ? 'bg-yellow-900/50 text-yellow-300'
                             : 'bg-gray-700 text-gray-300'
-                        }`}
+                          }`}
                       >
                         {campaign.status}
                       </span>

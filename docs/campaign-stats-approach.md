@@ -247,3 +247,4 @@ GROUP BY campaign_id, DATE(event_date);
 
 This gives you the best of both worlds: **flexibility + performance**.
 
+

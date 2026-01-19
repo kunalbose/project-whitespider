@@ -356,3 +356,4 @@ GROUP BY campaign_id, DATE(event_date);
 4. Gradually migrate existing queries to use new functions
 5. Keep old tables for reference during transition
 
+

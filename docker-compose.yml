@@ -1,0 +1,30 @@
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  web:
+    image: node:18
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev"
+    env_file: .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+
+  worker:
+    image: node:18
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npm install && npx tsx workers/leadUpdate.worker.ts"
+    env_file: .env
+    depends_on:
+      - redis
+

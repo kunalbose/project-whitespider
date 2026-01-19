@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Menu, Inbox, BarChart3, Users } from 'lucide-react';
+import { LayoutDashboard, Menu, Inbox, BarChart3, Users, Settings } from 'lucide-react';
 import clsx from 'clsx';
 import { getAllCampaignsTodayStats } from '@/lib/queries/campaignStats';
 import { useDashboardStore } from '@/stores/dashboardStore';
@@ -11,7 +11,8 @@ import { useDashboardStore } from '@/stores/dashboardStore';
 const links = [
   { href: '/inbox', label: 'Unibox', icon: Inbox },
   { href: '/leads', label: 'Leads', icon: Users },
-  { href: '/campaigns', label: 'Campaigns', icon: BarChart3 },
+  { href: '/campaigns', label: 'Campaign Stats', icon: BarChart3 },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -33,7 +34,7 @@ export default function Sidebar() {
   //       setStatsLoading(true);
   //       const clientId = selectedClientID ? Number(selectedClientID) : undefined;
   //       const campaigns = await getAllCampaignsTodayStats(clientId);
-        
+
   //       const totals = campaigns.reduce((acc, campaign) => {
   //         acc.totalSent += campaign.sent_count;
   //         acc.totalReplies += campaign.reply_count;
@@ -97,8 +98,8 @@ export default function Sidebar() {
               className={clsx(
                 'flex items-center px-3 py-2 rounded transition-colors text-white',
                 collapsed ? 'justify-center' : 'space-x-3',
-                isActive 
-                  ? 'bg-purple-600 hover:bg-purple-700 font-semibold' 
+                isActive
+                  ? 'bg-purple-600 hover:bg-purple-700 font-semibold'
                   : 'hover:bg-gray-800'
               )}
             >

@@ -1,6 +1,7 @@
 {
   "name": "email-dashboard",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -17,9 +18,11 @@
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.9",
     "autoprefixer": "^10.4.21",
+    "bullmq": "^5.66.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "ioredis": "^5.8.2",
     "lucide-react": "^0.511.0",
     "moment": "^2.30.1",
     "next": "15.3.3",
@@ -48,6 +51,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "tw-animate-css": "^1.3.4",
     "typescript": "^5"
   },

@@ -14,11 +14,11 @@ export default function ChatPage() {
   const { email } = useUserStore()
   const router = useRouter();
 
-  useEffect(() => {
-    if (!email) {
-      router.replace('/login');
-    }
-  }, [email]);
+  // useEffect(() => {
+  //   if (!email) {
+  //     router.replace('/login');
+  //   }
+  // }, [email]);
 
   return (
     <div className="flex h-[calc(100vh-57px)] overflow-hidden border-orange-700">

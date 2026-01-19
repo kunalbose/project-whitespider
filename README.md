@@ -48,3 +48,5 @@ Future Plans for the project:
 6. Domain Purchase and Email Setup Pipeline(API Based).
 7. Connecting Email Inboxes to the system via Oauth and doing realtime reply management. Maybe connect with LLM too.
 8. Connecting Whatsapp, Slack, Linkedin etc, so we can do realtime reply management and respond to messages and tasks, intent, sentiment, next steps with LLM.
+
+9. Use react flow to make an interface or something that will work on the list.
