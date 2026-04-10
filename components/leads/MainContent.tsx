@@ -22,7 +22,7 @@ export default function MainContent() {
         enriched_count: number;
         total_count: number;
     } | null>(null);
-    const activeList = lists.find((list) => list.id === activeListId);
+    const activeList = lists?.find((list) => list.id === activeListId);
 
     // Fetch list details when a list is selected
     useEffect(() => {

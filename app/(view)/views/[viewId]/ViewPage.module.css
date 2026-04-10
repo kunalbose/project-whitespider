@@ -1,0 +1,87 @@
+.container {
+    background: #0b0f14;
+    color: #e5e7eb;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* HEADER */
+.header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #1f2937;
+    background: #0f172a;
+}
+
+.tabs {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+}
+
+.tabs button {
+    background: #1e293b;
+    border: none;
+    color: #94a3b8;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.tabs button:hover {
+    background: #334155;
+    color: #fff;
+}
+
+/* TABLE */
+.tableWrapper {
+    flex: 1;
+    overflow: auto;
+    /* 🔥 same scroll for header + body */
+    position: relative;
+}
+
+/* HEADER ROW */
+.gridHeader {
+    display: grid;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #020617;
+    border-bottom: 1px solid #1e293b;
+}
+
+.cellHeader {
+    padding: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #64748b;
+    border-right: 1px solid #1e293b;
+}
+
+/* ROW */
+.row {
+    display: grid;
+    position: absolute;
+    left: 0;
+    height: 44px;
+    border-bottom: 1px solid #0f172a;
+}
+
+.row:hover {
+    background: #020617;
+}
+
+/* CELL */
+.cell {
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    border-right: 1px solid #0f172a;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

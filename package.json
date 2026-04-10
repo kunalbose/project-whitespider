@@ -17,6 +17,8 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.9",
+    "@tanstack/react-virtual": "^3.13.23",
+    "@xyflow/react": "^12.10.2",
     "autoprefixer": "^10.4.21",
     "bullmq": "^5.66.1",
     "class-variance-authority": "^0.7.1",

@@ -57,16 +57,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
             return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429, headers });
         }
 
-        console.log({ ...body, lead_membership_id: id }, 'body');
-
         const { lead_membership_id, ...rest } = body;
 
         const { data, error: rpcError } = await supabaseAdmin.rpc('enrich_single_lead', {
             p_enrichment_data: { ...rest, lead_membership_id: Number(id) },
         });
-
-        console.log(data, 'data');
-        console.log(rpcError, 'rpcError');
 
         if (rpcError) {
             console.error('Supabase RPC error:', rpcError);

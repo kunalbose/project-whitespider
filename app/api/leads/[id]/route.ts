@@ -16,9 +16,6 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const { id } = await context.params;
     const authHeader = request.headers.get('authorization');
 
-    // console.log(authHeader, 'authHeader');
-    // console.log(id, 'id');
-
     if (!id) {
         return NextResponse.json({ error: 'Missing lead ID' }, { status: 400 });
     }

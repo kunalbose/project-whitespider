@@ -1,73 +1,92 @@
-.leadSidebar{
-    padding: 16px;
-    background-color: #1a1a1a;
-    color: white;
-    height: 100%;
-    overflow-y: auto;
+.leadSidebar {
+  padding: 16px;
+  background-color: #1a1a1a;
+  color: white;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .sidebar {
-    display: flex;
-    flex-direction: column;
-    width: 280px;
-    border-right: 1px solid #e5e7eb; /* light gray border */
-    background-color: #fff;
-    overflow-y: auto;
-    height: 100vh;
-  }
-  
-  .contactList {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .contactItem {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 12px 16px;
-    border-bottom: 1px solid #f3f4f6;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-  
-  .contactItem:hover {
-    background-color: #f9fafb;
-    color: black;
-  }
-  
-  .activeContact {
-    background-color: #eef2ff; /* subtle highlight */
-    color: black;
-  }
-  
-  .contactText {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
-  }
-  
-  .name {
-    font-weight: 600;
-    font-size: 14px;
-    margin: 0;
-  }
-  
-  .email {
-    font-size: 12px;
-    color: #6b7280;
-    margin: 0;
-  }
-  
-  .timeDiv {
-    margin-left: 8px;
-    display: flex;
-    align-items: center;
-  }
-  
-  .time {
-    font-size: 11px;
-    color: #9ca3af;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  width: 280px;
+  border-right: 1px solid #e5e7eb;
+  /* light gray border */
+  background-color: #fff;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.contactList {
+  display: flex;
+  flex-direction: column;
+}
+
+.contactItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.contactItem:hover {
+  background-color: #f9fafb;
+  color: black;
+}
+
+.activeContact {
+  background-color: #eef2ff;
+  /* subtle highlight */
+  color: black;
+}
+
+.contactText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.name {
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0;
+}
+
+.email {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.timeDiv {
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.time {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.createViewBtn {
+  background: #1f2937;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.createViewBtn:hover {
+  background: #374151;
+}
+
+.loader {
+  font-size: 12px;
+  color: #9ca3af;
+}

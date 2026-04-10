@@ -1,13 +1,17 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './LeadsSidebar.module.css';
 import { useListStore } from '@/stores/listStore';
 import { supabase } from '@/lib/supabase';
 import moment from 'moment';
+import { useRouter } from 'next/navigation';
 
 export default function ListSidebar() {
+  const router = useRouter();
+
   const { lists, activeListId, setLists, setActiveList } = useListStore();
+  const [loadingListId, setLoadingListId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchLists = async () => {
@@ -26,6 +30,27 @@ export default function ListSidebar() {
     setActiveList(listId);
   }
 
+  async function createView(listId: number) {
+    if (loadingListId === listId) return;
+    try {
+      setLoadingListId(listId);
+
+      const { data: viewId, error } = await supabase.rpc(
+        'create_view_from_list',
+        { p_list_id: listId }
+      );
+
+      if (error) throw error;
+
+      router.push(`/views/${viewId}`);
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingListId(null);
+    }
+  }
+
   return (
     <div className={styles.leadSidebar}>
       <div className={styles.contactList}>
@@ -34,17 +59,32 @@ export default function ListSidebar() {
             <div
               key={list.id}
               onClick={() => selectList(list.id)}
-              className={`${styles.contactItem} ${activeListId === list.id ? styles.activeContact : ''}`}
+              className={`${styles.contactItem} ${activeListId === list.id ? styles.activeContact : ''
+                }`}
             >
               <div className={styles.contactText}>
                 <p className={styles.name}>{list.name || 'Unnamed List'}</p>
                 <p className={styles.email}>{`${list.total_leads || 0} leads`}</p>
-                <small>Created {moment(list.created_at).format('MMM D, h:mm A')}</small>
+                <small>
+                  Created {moment(list.created_at).format('MMM D, h:mm A')}
+                </small>
               </div>
+
+              {/* RIGHT SIDE */}
               <div className={styles.timeDiv}>
-                <span className={styles.time}>
-                  {list.last_uploaded_at ? moment(list.last_uploaded_at).format('MMM D, h:mm A') : ''}
-                </span>
+                {loadingListId === list.id ? (
+                  <span className={styles.loader}>Loading...</span>
+                ) : (
+                  <button
+                    className={styles.createViewBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      createView(list.id);
+                    }}
+                  >
+                    ➜ Create View
+                  </button>
+                )}
               </div>
             </div>
           ))

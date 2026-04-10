@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Menu, Inbox, BarChart3, Users, Settings } from 'lucide-react';
+import { LayoutDashboard, Menu, Inbox, BarChart3, Users, Settings, View } from 'lucide-react';
 import clsx from 'clsx';
 import { getAllCampaignsTodayStats } from '@/lib/queries/campaignStats';
 import { useDashboardStore } from '@/stores/dashboardStore';
@@ -12,6 +12,7 @@ const links = [
   { href: '/inbox', label: 'Unibox', icon: Inbox },
   { href: '/leads', label: 'Leads', icon: Users },
   { href: '/campaigns', label: 'Campaign Stats', icon: BarChart3 },
+  { href: '/views', label: 'Views', icon: View },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
