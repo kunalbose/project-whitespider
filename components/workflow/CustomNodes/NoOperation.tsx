@@ -1,17 +1,28 @@
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
+import { NodeData } from '../Workflow';
 
-type NoOperationNodeData = Node<{
+type NoOpNodeConfig = {
     label?: string;
-    onDelete?: (nodeId: string) => void;
-}, 'noOperation'>
+};
+
+type NoOperationNodeData = Node<NodeData<NoOpNodeConfig>, 'noOperation'>
 
 const NoOperationNode = ({ id, data, selected }: NodeProps<NoOperationNodeData>) => {
     return (
-        <div className="group relative min-w-[200px]">
+        <div className={`group relative min-w-[200px]`}>
             <div className={`
-                w-full h-full shadow-xl rounded-lg overflow-hidden border-2 transition-all
-                ${selected ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-800'}
-                bg-slate-900 text-slate-200 cursor-pointer
+                    w-full h-full shadow-xl rounded-lg overflow-hidden border-2 transition-[border,box-shadow] duration-300
+                    ${data.status === 'running'
+                    ? 'border-yellow-500 ring-2 ring-yellow-500/30'
+                    : data.status === 'completed'
+                        ? 'border-green-500 ring-2 ring-green-500/30'
+                        : data.status === 'error'
+                            ? 'border-red-500 ring-2 ring-red-500/30'
+                            : selected
+                                ? 'border-blue-500 ring-2 ring-blue-500/20'
+                                : 'border-slate-800'
+                }
+                    bg-slate-900 text-slate-200 cursor-pointer
             `}>
                 <div className="bg-slate-800 px-3 py-2 border-b border-slate-700 flex items-center justify-between">
                     <div className="flex items-center gap-2 justify-center w-full">

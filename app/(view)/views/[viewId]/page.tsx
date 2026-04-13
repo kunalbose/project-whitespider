@@ -6,6 +6,7 @@ import styles from './ViewPage.module.css';
 import { useParams } from 'next/navigation';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import Workflow from '@/components/workflow/Workflow';
+import ExecutionsViewer from '@/components/workflow/ExecutionViewer';
 
 export default function ViewPage() {
     const params = useParams();
@@ -163,8 +164,12 @@ export default function ViewPage() {
                 </div>
             )}
 
-            {activeTab === 'workflow' && <Workflow rows={rows.slice(0, 11)} />
+            {activeTab === 'workflow' && <Workflow rows={rows.slice(0, 11)} viewId={viewId} />
             }
+
+            {activeTab === 'executions' && (
+                <ExecutionsViewer viewId={viewId} rows={rows} />
+            )}
         </div>
     );
 }

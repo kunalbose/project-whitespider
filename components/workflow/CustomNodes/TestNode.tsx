@@ -1,19 +1,29 @@
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
+import { NodeData } from '../Workflow';
 
-type TestNodeData = Node<{
+type TestNodeConfig = {
     label: string;
     selectedRowId?: number;
     rows?: any[];
-    onChange?: (nodeId: string, updater: (data: any) => any) => void;
-    onDelete?: (nodeId: string) => void;
-}, 'test'>
+};
+
+type TestNodeData = Node<NodeData<TestNodeConfig>, 'test'>
 
 const TestNode = ({ id, data, selected }: NodeProps<TestNodeData>) => {
     return (
-        <div className="group relative min-w-[220px]">
+        <div className={`group relative min-w-[220px]`} >
             <div className={`
-                w-full h-full shadow-xl rounded-lg overflow-hidden border-2 transition-all
-                ${selected ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-800'}
+                    w-full h-full shadow-xl rounded-lg overflow-hidden border-2 transition-[border,box-shadow] duration-300
+                    ${data.status === 'running'
+                    ? 'border-yellow-500 ring-2 ring-yellow-500/30'
+                    : data.status === 'completed'
+                        ? 'border-green-500 ring-2 ring-green-500/30'
+                        : data.status === 'error'
+                            ? 'border-red-500 ring-2 ring-red-500/30'
+                            : selected
+                                ? 'border-blue-500 ring-2 ring-blue-500/20'
+                                : 'border-slate-800'
+                }
                 bg-slate-900 text-slate-200 cursor-pointer
             `}>
                 <div className="bg-slate-800 px-3 py-2 border-b border-slate-700 flex items-center justify-between">
@@ -25,7 +35,7 @@ const TestNode = ({ id, data, selected }: NodeProps<TestNodeData>) => {
                     </div>
                 </div>
 
-                <div className="p-4 space-y-3">
+                {/* <div className="p-4 space-y-3">
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[11px] font-semibold text-slate-400 ml-0.5">
                             Select Data Source
@@ -55,7 +65,7 @@ const TestNode = ({ id, data, selected }: NodeProps<TestNodeData>) => {
                             ))}
                         </select>
                     </div>
-                </div>
+                </div> */}
             </div>
 
             <Handle
@@ -104,3 +114,34 @@ const TestNode = ({ id, data, selected }: NodeProps<TestNodeData>) => {
 };
 
 export default TestNode;
+
+type TestNodeConfigProps = {
+    node: Node<NodeData<TestNodeConfig>, 'test'>;
+    updateNodeData: (
+        nodeId: string,
+        updater: (data: any) => any
+    ) => void;
+};
+
+export const TestNodeConfig = ({ node, updateNodeData }: TestNodeConfigProps) => {
+    return (
+        <select
+            value={node.data.selectedRowId ?? ''}
+            onChange={(e) => {
+                const value = Number(e.target.value);
+                updateNodeData(node.id, (prev) => ({
+                    ...prev,
+                    selectedRowId: value,
+                }));
+            }}
+            className="w-full bg-slate-800 border p-2 rounded"
+        >
+            <option value="">Select Row...</option>
+            {node.data.rows?.map((row) => (
+                <option key={row.id} value={row.id} className="bg-slate-900">
+                    {row.id} - {row.schema?.name || 'No Name'}
+                </option>
+            ))}
+        </select>
+    );
+};
