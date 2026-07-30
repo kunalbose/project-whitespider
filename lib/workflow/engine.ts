@@ -1,10 +1,28 @@
 import { StrictEdge } from "@/components/workflow/Workflow";
 import { Node } from "@xyflow/react";
+import { executeTool } from "@/lib/tools/client";
+import { resolveTemplates } from "@/lib/tools/template";
 
 export async function executeNode(node: Node, input: any) {
     switch (node.type) {
         case 'test':
             return input;
+
+        // Every registry tool runs through this one case. Adding a tool never touches
+        // the engine — see tool-host/registry.ts.
+        case 'tool': {
+            const toolName = node.data.toolName as string;
+            const args = resolveTemplates(
+                node.data.arguments ?? {},
+                { item: input },
+                `node '${node.data.label || toolName}'`
+            );
+
+            const res = await executeTool(toolName, args);
+            if (!res.success) throw new Error(res.error.message);
+
+            return res.result;
+        }
 
         case 'noop':
             return input;

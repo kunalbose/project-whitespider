@@ -60,10 +60,63 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        // Registry tools are palette entries too. They all render through the single
+        // generic `tool` node, so a new tool needs no code here or in the UI.
+        let toolQuery = supabase
+            .from('tools')
+            .select('id, name, display_name, description, category, input_schema, output_schema')
+            .eq('status', 'active')
+            .order('display_name', { ascending: true });
+
+        // Tools never carry the 'Execution' category, so the "first node must be an
+        // Execution node" rule keeps working: filtering to it excludes them entirely.
+        if (category) {
+            toolQuery = toolQuery.eq('category', category);
+        }
+
+        if (search) {
+            toolQuery = toolQuery.or(
+                `display_name.ilike.%${search}%,name.ilike.%${search}%,description.ilike.%${search}%`
+            );
+        }
+
+        if (excludeCategory) {
+            toolQuery = toolQuery.neq('category', excludeCategory);
+        }
+
+        const { data: tools, error: toolsError } = await toolQuery;
+
+        if (toolsError) {
+            console.error('Supabase error (tools):', toolsError);
+
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'Failed to fetch tools',
+                    details: toolsError.message,
+                },
+                { status: 500 }
+            );
+        }
+
+        const toolEntries = (tools ?? []).map((t) => ({
+            id: `tool:${t.id}`,
+            key: 'tool',
+            name: t.display_name,
+            description: t.description,
+            category: t.category,
+            tool_name: t.name,
+            config_schema: null,
+            input_schema: t.input_schema,
+            output_schema: t.output_schema,
+        }));
+
+        const merged = [...data, ...toolEntries];
+
         return NextResponse.json({
             success: true,
-            count: data.length,
-            data,
+            count: merged.length,
+            data: merged,
         });
 
     } catch (err) {

@@ -17,6 +17,9 @@ export async function POST(req: Request) {
                 );
             };
 
+            // Hoisted so the catch below can mark the row terminal.
+            let executionId: string | null = null;
+
             try {
                 const startNode = workingNodes.find((n: Node) => n.type === 'test');
                 if (!startNode) throw new Error('No start node (test) found');
@@ -46,29 +49,51 @@ export async function POST(req: Request) {
                     .select()
                     .single();
 
-                console.log(executionError, 'execute');
+                if (!execution) {
+                    throw new Error(
+                        `Failed to create execution: ${executionError?.message ?? 'unknown error'}`
+                    );
+                }
 
-                if (!execution) throw new Error('Failed to create execution');
+                executionId = execution.id;
 
                 await executeFlow(startNode, context, workingNodes, edges, emit);
 
-                // await supabase
-                //     .from('workflow_executions')
-                //     .update({
-                //         status: 'completed',
-                //         completed_at: new Date().toISOString(),
-                //         snapshot: {
-                //             nodes: workingNodes,
-                //             edges,
-                //         },
-                //     })
-                //     .eq('id', execution.id);
+                // Executions MUST reach a terminal status. There is a partial unique index
+                // (idx_active_execution on list_lead_id, view_id) over active rows, so a row
+                // left at 'running' permanently blocks every re-run of that lead in this view.
+                await supabase
+                    .from('workflow_executions')
+                    .update({
+                        status: 'completed',
+                        completed_at: new Date().toISOString(),
+                        snapshot: {
+                            nodes: workingNodes,
+                            edges,
+                        },
+                    })
+                    .eq('id', execution.id);
 
                 controller.enqueue(
                     encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
                 );
             } catch (err: any) {
                 const errorMessage = err?.message || 'Execution failed';
+
+                // Same reason: a failed run must not leave the execution stuck at 'running'.
+                if (executionId) {
+                    await supabase
+                        .from('workflow_executions')
+                        .update({
+                            status: 'error',
+                            completed_at: new Date().toISOString(),
+                            snapshot: {
+                                nodes: workingNodes,
+                                edges,
+                            },
+                        })
+                        .eq('id', executionId);
+                }
 
                 controller.enqueue(
                     encoder.encode(

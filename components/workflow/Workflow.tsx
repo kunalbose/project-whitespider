@@ -8,6 +8,7 @@ import TestNode from './CustomNodes/TestNode';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 import IfNode from './CustomNodes/If';
+import ToolNode from './CustomNodes/ToolNode';
 import { nodeConfigRegistry } from './CustomNodes/configRegistery';
 
 const ReactJson = dynamic(
@@ -44,6 +45,8 @@ type NodeType = {
     config_schema: any;
     input_schema: any;
     output_schema: any;
+    /** Only present on entries that came from the `tools` registry. */
+    tool_name?: string;
 }
 
 const Workflow = ({ rows, initialNodes, initialEdges, mode = 'edit', viewId }: { rows: any[], initialNodes?: Node<AnyNodeData>[], initialEdges?: StrictEdge[], mode?: 'edit' | 'view', viewId: string }) => {
@@ -63,16 +66,21 @@ const Workflow = ({ rows, initialNodes, initialEdges, mode = 'edit', viewId }: {
     const nodeTypes = useMemo(() => ({
         noop: NoOperation,
         test: TestNode,
-        if: IfNode
+        if: IfNode,
+        // One generic node backs every tool in the registry.
+        tool: ToolNode
     }), []);
 
-    const addNode = (type: string, name: string) => {
+    const addNode = (menuNode: NodeType) => {
+        const isTool = menuNode.key === 'tool';
+
         const newNode = {
             id: crypto.randomUUID(),
-            type,
-            position: { x: 250, y: 250 },
+            type: menuNode.key,
+            // Offset by node count so new nodes don't stack on top of each other.
+            position: { x: 250 + nodes.length * 60, y: 250 + nodes.length * 40 },
             data: {
-                label: name,
+                label: menuNode.name,
                 selectedRowId: null,
                 rows: rows.slice(0, 10),
                 onChange: updateNodeData,
@@ -80,6 +88,11 @@ const Workflow = ({ rows, initialNodes, initialEdges, mode = 'edit', viewId }: {
                 input: undefined,
                 output: undefined,
                 status: 'idle',
+                ...(isTool && {
+                    toolName: menuNode.tool_name,
+                    inputSchema: menuNode.input_schema,
+                    arguments: {},
+                }),
             },
         };
 
@@ -338,7 +351,7 @@ const Workflow = ({ rows, initialNodes, initialEdges, mode = 'edit', viewId }: {
                     {nodeMenu.map((menuNode) => (
                         <div
                             key={menuNode.id}
-                            onClick={() => addNode(menuNode.key, menuNode.name)}
+                            onClick={() => addNode(menuNode)}
                             className="p-3 bg-slate-800 border border-slate-600 rounded cursor-pointer hover:bg-slate-700 hover:border-blue-500 text-white transition-all"
                         >
                             {menuNode.name}
