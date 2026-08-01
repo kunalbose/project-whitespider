@@ -48,4 +48,6 @@ export interface ToolRecord {
     supports_batch: boolean;
     version: number;
     status: string;
+    /** Overrides the executor's default timeout. Null means "use the default". */
+    timeout_ms: number | null;
 }

@@ -67,6 +67,54 @@ Only malformed requests are 4xx. A tool that fails still returns 200 with `succe
 Refresh the browser. The tool appears in the Add Node sidebar, is configurable, and runs. **If
 adding a tool ever requires touching anything else, something has regressed.**
 
+Two things the registry row controls that are easy to miss:
+
+- **`timeout_ms`** overrides the executor's 30s default for that tool alone. A tool that makes
+  several network calls needs it; raising the global default instead would let every future tool
+  hang for minutes before anyone noticed. Null means use the default.
+- **`"format": "textarea"`** on a string property renders a multi-line box instead of an input.
+  It is the only presentation hint the generated form takes, and it exists so a tool that wants a
+  paragraph does not need React code to ask for one.
+
+Tools that call out to a provider read their credentials from the environment
+(`SCRAPING_DOG_API_KEY`, `ANTHROPIC_API_KEY`) rather than taking them as arguments — a key in an
+argument would be templated, saved into the workflow graph, and snapshotted into every execution.
+
+## Native nodes vs tools — when to break the rule above
+
+A **tool** is a pure function of its arguments. It gets no execution context and no
+database privileges, which is exactly what makes it portable enough to move to a
+standalone host later.
+
+A **native node** is the exception, and needs all four registration points (a
+`node_types` row, the `nodeTypes` map, `nodeConfigRegistry`, and a `case` in
+`engine.ts`). Only reach for one when the node genuinely needs something a tool must not
+have — the execution context, or elevated writes. `map_column` is the reference example:
+it needs the execution id and the lead id, and it writes through SECURITY DEFINER RPCs.
+If a new capability does not need those, it is a tool. Adding native nodes casually is
+the regression this architecture exists to prevent.
+
+## Staged writes — the Column Mapper
+
+`map_column` never writes a value. It records a **proposal** (`workflow_write_proposals`)
+holding the target container, column, `new_value`, and the `previous_value` that is there
+today. That indirection is what makes the agent flow work: test across N rows → proposals
+exist in the DB → the Executions tab renders a real before/after diff → the user approves
+→ `apply_write_proposals()` commits. `previous_value` is what makes `revert_write_proposals()`
+possible.
+
+Test runs stage only. Non-test runs stage and then apply once, after the flow succeeds, so
+a mid-flow failure cannot half-apply a row.
+
+Column routing: an **existing** column keeps whatever container its `columns.column_type`
+says (`schema` → top level, `extra_field` → `schema.extra_fields`, and so on). A **new**
+column is created as an `internal_enrichment`, and its `columns` row is only inserted at
+apply time — unapproved runs must not mutate list metadata. `email` and `domain` are
+refused outright; they are the identity keys used to match leads across imports.
+
+Watch the singular/plural asymmetry: the `column_type` is `extra_field` but the schema key
+is `extra_fields`. `schema_container_for()` in SQL is the single place that mapping lives.
+
 ## Templating
 
 Tool arguments go through `resolveTemplates()` (`lib/tools/template.ts`) before execution.
@@ -74,6 +122,31 @@ Tool arguments go through `resolveTemplates()` (`lib/tools/template.ts`) before 
 expression grammar, deliberately. A string that is exactly one template preserves the value's
 type (numbers stay numbers); a mixed string interpolates. An unresolvable path throws
 `TemplateError` naming the path and the node.
+
+## Saved workflows
+
+A workflow is one `workflows` row scoped to a view, whose `graph` jsonb holds the React Flow
+`{ nodes, edges }` verbatim. That is the shape every layer already speaks — `executeFlow`, the
+canvas's `initialNodes`/`initialEdges`, the agent's compiler, and `workflow_executions.snapshot` —
+so nothing assembles or disassembles a graph on the way in or out.
+
+`name` is optional everywhere it is accepted. `POST` generates `<list>-<view>-workflow-<n>` when it
+is blank, and `PATCH` treats a blank name as "no change" rather than as an erase — so the canvas's
+name field can be cleared without ever leaving a workflow nameless. That is what lets **New** open
+a canvas immediately instead of gating on a naming step.
+
+Saving overwrites and the `workflows_touch` trigger bumps `version`, but **only when the graph
+actually changed**, so a rename does not invent a version with no new definition behind it. Never
+set `version` from the client. Executions record `workflow_id` and the `workflow_version` read at
+run time, alongside the full `snapshot` of what ran — three independent records of the same fact,
+which is what makes run history survive later edits.
+
+`workflow_nodes`, `workflow_edges`, and `node_executions` are **vestigial**: empty, referenced
+nowhere, and keyed to `view_id` from an earlier one-workflow-per-view design. Do not build on them.
+
+The canvas is mounted with `key={workflow.id}` in `WorkflowsPanel`. `useNodesState` treats its
+argument as *initial* state and never re-syncs, so without the key, switching workflows leaves the
+previous graph on screen.
 
 ## Standing gotchas
 
@@ -88,6 +161,15 @@ type (numbers stay numbers); a mixed string interpolates. An unresolvable path t
 - **`tool-host/registry.ts` must stay a static map.** A computed `import(\`./tools/${x}\`)`
   cannot be statically analyzed and breaks under the Next.js bundler.
 - **Supabase is accessed with the anon key** (`lib/supabase.ts`), so any new table needs an RLS
-  select policy or reads silently come back empty.
+  select policy or reads silently come back empty. `SUPABASE_SERVICE_ROLE_KEY` is referenced by
+  `app/api/leads/[id]/single/route.ts` but is **not** in `.env`, so that route silently falls back
+  to anon. Any write path must therefore go through a SECURITY DEFINER RPC.
+- **`internal_enrichment` was never actually written by `enrich_single_lead`** — the RPC computes
+  `v_internal_enrichment` and then only merges `extra_fields` and `external_enrichment` back into
+  the schema. Values routed there by that function are dropped. `apply_write_proposals` handles it
+  correctly; the older RPC is still wrong.
+- **`app/(dashboard)/leads/[listId]/splits/download/route.ts` reads `internal_enrichments` /
+  `external_enrichments` (plural).** The real `column_type` values are singular, so enrichment
+  columns silently export as blank there. Not fixed, since nothing in this work depends on it.
 - The engine walks straight-line graphs recursively and re-executes shared branches; `if` nodes
   split items across `true`/`false` handles. DAG traversal is deferred, not forgotten.

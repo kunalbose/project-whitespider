@@ -113,7 +113,8 @@ type ToolNodeConfigProps = {
  * future tool renders through it.
  */
 export const ToolNodeConfig = ({ node, updateNodeData }: ToolNodeConfigProps) => {
-    const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+    // Either element works for insertField — both carry selectionStart.
+    const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
 
     const schema = node.data.inputSchema ?? {};
     const properties: Record<string, any> = schema.properties ?? {};
@@ -165,6 +166,12 @@ export const ToolNodeConfig = ({ node, updateNodeData }: ToolNodeConfigProps) =>
             {propertyKeys.map((key) => {
                 const prop = properties[key] ?? {};
                 const isRequired = required.includes(key);
+                // Still schema-driven, still no per-tool React: a property that holds a
+                // paragraph rather than a value says so with format: 'textarea'.
+                const isMultiline = prop.format === 'textarea';
+                const fieldClass =
+                    'w-full bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all';
+                const placeholder = prop.description || `${prop.type || 'value'} or {{ item.field }}`;
 
                 return (
                     <div key={key} className="space-y-1.5">
@@ -174,13 +181,24 @@ export const ToolNodeConfig = ({ node, updateNodeData }: ToolNodeConfigProps) =>
                             <span className="text-slate-600 font-normal">({prop.type || 'any'})</span>
                         </label>
 
-                        <input
-                            ref={(el) => { inputRefs.current[key] = el; }}
-                            className="w-full bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                            placeholder={prop.description || `${prop.type || 'value'} or {{ item.field }}`}
-                            value={args[key] ?? ''}
-                            onChange={(e) => setArgument(key, e.target.value)}
-                        />
+                        {isMultiline ? (
+                            <textarea
+                                ref={(el) => { inputRefs.current[key] = el; }}
+                                rows={6}
+                                className={`${fieldClass} resize-y leading-relaxed`}
+                                placeholder={placeholder}
+                                value={args[key] ?? ''}
+                                onChange={(e) => setArgument(key, e.target.value)}
+                            />
+                        ) : (
+                            <input
+                                ref={(el) => { inputRefs.current[key] = el; }}
+                                className={fieldClass}
+                                placeholder={placeholder}
+                                value={args[key] ?? ''}
+                                onChange={(e) => setArgument(key, e.target.value)}
+                            />
+                        )}
 
                         {availableFields.length > 0 && (
                             <select

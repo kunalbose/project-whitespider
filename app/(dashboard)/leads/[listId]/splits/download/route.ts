@@ -22,10 +22,10 @@ function generateRow(lead_membership_id: number, schema: any, columns: Column[])
             value = schema[col.column_name];
         } else if (col.column_type === 'extra_field') {
             value = schema.extra_fields?.[col.column_name];
-        } else if (col.column_type === 'internal_enrichments') {
-            value = schema.internal_enrichments?.[col.column_name];
-        } else if (col.column_type === 'external_enrichments') {
-            value = schema.external_enrichments?.[col.column_name];
+        } else if (col.column_type === 'internal_enrichment') {
+            value = schema.internal_enrichment?.[col.column_name];
+        } else if (col.column_type === 'external_enrichment') {
+            value = schema.external_enrichment?.[col.column_name];
         }
 
         // Escape quotes and wrap in quotes
@@ -38,7 +38,7 @@ function generateRow(lead_membership_id: number, schema: any, columns: Column[])
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { listId: string } }
+    _context: { params: Promise<{ listId: string }> }
 ) {
     const searchParams = request.nextUrl.searchParams;
     const clayTableId = searchParams.get('clayTableId');

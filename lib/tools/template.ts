@@ -116,6 +116,45 @@ function readPath(expr: string, scope: TemplateScope, context?: string) {
     return current;
 }
 
+/**
+ * Every template path in a value, parsed into segments — without resolving anything.
+ *
+ * The capability analyzer checks a proposed workflow's templates against real columns
+ * before a single tool runs. It goes through this rather than its own regex so the two
+ * can never drift apart on what counts as a valid path: an expression this accepts is
+ * exactly an expression resolveTemplates() accepts.
+ *
+ * Throws TemplateError on an unsupported expression, same as resolution would.
+ */
+export function collectTemplatePaths(
+    value: any,
+    context?: string
+): { expr: string; segments: string[] }[] {
+    const found: { expr: string; segments: string[] }[] = [];
+
+    const visit = (v: any) => {
+        if (typeof v === 'string') {
+            for (const match of v.matchAll(TEMPLATE_RE)) {
+                const expr = match[1].trim();
+                found.push({ expr, segments: parsePath(expr, context) });
+            }
+            return;
+        }
+
+        if (Array.isArray(v)) {
+            v.forEach(visit);
+            return;
+        }
+
+        if (v && typeof v === 'object' && v.constructor === Object) {
+            Object.values(v).forEach(visit);
+        }
+    };
+
+    visit(value);
+    return found;
+}
+
 function missing(expr: string, context?: string) {
     return `Template path '${expr}' did not resolve${context ? ` in ${context}` : ''}. Check that the field exists on the incoming item.`;
 }

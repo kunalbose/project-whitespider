@@ -16,4 +16,5 @@ export const toolRegistry: Record<string, () => Promise<ToolModule>> = {
     echo: () => import('./tools/echo'),
     normalizeEmail: () => import('./tools/normalizeEmail'),
     fakeCompanyLookup: () => import('./tools/fakeCompanyLookup'),
+    icpCheck: () => import('./tools/icpCheck'),
 };

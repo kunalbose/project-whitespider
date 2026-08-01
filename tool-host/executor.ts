@@ -19,7 +19,10 @@ export async function runTool(
         const tool = await loadToolRecord(name);
         validateArguments(tool, args);
 
-        const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+        // The registry row wins over the caller. A tool that scrapes four pages and calls a
+        // model cannot finish inside the 30s default, and raising that default would let
+        // every future tool hang for two minutes. The envelope belongs with the tool.
+        const timeoutMs = tool.timeout_ms ?? opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
         const signal = opts.signal ?? AbortSignal.timeout(timeoutMs);
         const ctx: ToolContext = { toolName: tool.name, signal };
 
