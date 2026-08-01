@@ -5,8 +5,9 @@ import { supabase } from '@/lib/supabase';
 import styles from './ViewPage.module.css';
 import { useParams } from 'next/navigation';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import Workflow from '@/components/workflow/Workflow';
+import WorkflowsPanel from '@/components/workflow/WorkflowsPanel';
 import ExecutionsViewer from '@/components/workflow/ExecutionViewer';
+import AgentChat from '@/components/agent/AgentChat';
 
 export default function ViewPage() {
     const params = useParams();
@@ -14,7 +15,9 @@ export default function ViewPage() {
 
     const [columns, setColumns] = useState<any[]>([]);
     const [rows, setRows] = useState<any[]>([]);
-    const [activeTab, setActiveTab] = useState<'table' | 'workflow' | 'executions'>('table');
+    const [activeTab, setActiveTab] = useState<'table' | 'workflow' | 'executions' | 'agent'>('table');
+    // Set when the Agent tab hands off a finished test run, so Executions opens on it.
+    const [openExecutionId, setOpenExecutionId] = useState<string | null>(null);
 
     const parentRef = useRef<HTMLDivElement>(null);
 
@@ -30,6 +33,7 @@ export default function ViewPage() {
             } else if (column.column_type === 'extra_field') {
                 value = schema?.extra_fields?.[column.column_name];
             } else if (column.column_type === 'internal_enrichment') {
+                console.log(column, schema, 'column');
                 value = schema?.internal_enrichment?.[column.column_name];
             } else if (column.column_type === 'external_enrichment') {
                 value = schema?.external_enrichment?.[column.column_name];
@@ -103,6 +107,7 @@ export default function ViewPage() {
                 <h2>View</h2>
                 <div className={styles.tabs}>
                     <button onClick={() => setActiveTab('table')}>Table</button>
+                    <button onClick={() => setActiveTab('agent')}>Agent</button>
                     <button onClick={() => setActiveTab('workflow')}>Workflow</button>
                     <button onClick={() => setActiveTab('executions')}>Executions</button>
                 </div>
@@ -164,11 +169,32 @@ export default function ViewPage() {
                 </div>
             )}
 
-            {activeTab === 'workflow' && <Workflow rows={rows.slice(0, 11)} viewId={viewId} />
-            }
+            {activeTab === 'agent' && (
+                <div className={styles.tabPanel}>
+                    <AgentChat
+                        viewId={viewId}
+                        onOpenExecution={(executionId) => {
+                            setOpenExecutionId(executionId);
+                            setActiveTab('executions');
+                        }}
+                    />
+                </div>
+            )}
+
+            {activeTab === 'workflow' && (
+                <div className={styles.tabPanel}>
+                    <WorkflowsPanel viewId={viewId} rows={rows} />
+                </div>
+            )}
 
             {activeTab === 'executions' && (
-                <ExecutionsViewer viewId={viewId} rows={rows} />
+                <div className={styles.tabPanel}>
+                    <ExecutionsViewer
+                        viewId={viewId}
+                        rows={rows}
+                        initialExecutionId={openExecutionId}
+                    />
+                </div>
             )}
         </div>
     );

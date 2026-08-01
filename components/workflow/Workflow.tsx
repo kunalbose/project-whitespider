@@ -8,6 +8,8 @@ import TestNode from './CustomNodes/TestNode';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 import IfNode from './CustomNodes/If';
+import ToolNode from './CustomNodes/ToolNode';
+import MapColumnNode from './CustomNodes/MapColumn';
 import { nodeConfigRegistry } from './CustomNodes/configRegistery';
 
 const ReactJson = dynamic(
@@ -44,14 +46,34 @@ type NodeType = {
     config_schema: any;
     input_schema: any;
     output_schema: any;
+    /** Only present on entries that came from the `tools` registry. */
+    tool_name?: string;
 }
 
-const Workflow = ({ rows, initialNodes, initialEdges, mode = 'edit', viewId }: { rows: any[], initialNodes?: Node<AnyNodeData>[], initialEdges?: StrictEdge[], mode?: 'edit' | 'view', viewId: string }) => {
+const Workflow = ({ rows, initialNodes, initialEdges, initialName, mode = 'edit', viewId, workflowId, onSave }: {
+    rows: any[],
+    initialNodes?: Node<AnyNodeData>[],
+    initialEdges?: StrictEdge[],
+    /** Seeds the name field. Initial state only, like the nodes — the caller remounts by key. */
+    initialName?: string,
+    mode?: 'edit' | 'view',
+    viewId: string,
+    /** Recorded on the execution, so a run can be traced back to the workflow it came from. */
+    workflowId?: number,
+    /**
+     * Renders the name field and Save button when set. Takes the graph as an argument rather
+     * than having the caller lift state, which would mean hoisting useNodesState out of this
+     * component and rewiring every consumer.
+     */
+    onSave?: (nodes: Node<AnyNodeData>[], edges: StrictEdge[], name: string) => Promise<void>,
+}) => {
     const [nodes, setNodes, onNodesChange] = useNodesState<Node<AnyNodeData>>(initialNodes || []);
     const [edges, setEdges, onEdgesChange] = useEdgesState<StrictEdge>(initialEdges || []);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [nodeMenu, setNodeMenu] = useState<NodeType[]>([]);
     const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
+    const [saving, setSaving] = useState(false);
+    const [name, setName] = useState(initialName ?? '');
 
     const activeNode = nodes.find((n) => n.id === activeNodeId);
 
@@ -63,16 +85,22 @@ const Workflow = ({ rows, initialNodes, initialEdges, mode = 'edit', viewId }: {
     const nodeTypes = useMemo(() => ({
         noop: NoOperation,
         test: TestNode,
-        if: IfNode
+        if: IfNode,
+        // One generic node backs every tool in the registry.
+        tool: ToolNode,
+        map_column: MapColumnNode
     }), []);
 
-    const addNode = (type: string, name: string) => {
+    const addNode = (menuNode: NodeType) => {
+        const isTool = menuNode.key === 'tool';
+
         const newNode = {
             id: crypto.randomUUID(),
-            type,
-            position: { x: 250, y: 250 },
+            type: menuNode.key,
+            // Offset by node count so new nodes don't stack on top of each other.
+            position: { x: 250 + nodes.length * 60, y: 250 + nodes.length * 40 },
             data: {
-                label: name,
+                label: menuNode.name,
                 selectedRowId: null,
                 rows: rows.slice(0, 10),
                 onChange: updateNodeData,
@@ -80,6 +108,11 @@ const Workflow = ({ rows, initialNodes, initialEdges, mode = 'edit', viewId }: {
                 input: undefined,
                 output: undefined,
                 status: 'idle',
+                ...(isTool && {
+                    toolName: menuNode.tool_name,
+                    inputSchema: menuNode.input_schema,
+                    arguments: {},
+                }),
             },
         };
 
@@ -136,6 +169,23 @@ const Workflow = ({ rows, initialNodes, initialEdges, mode = 'edit', viewId }: {
         );
     }
 
+    async function save() {
+        if (!onSave || saving) return;
+
+        setSaving(true);
+        const toastId = toast.loading('Saving…');
+
+        try {
+            // Blank is allowed through: the API keeps the existing name rather than erasing it.
+            await onSave(nodes, edges, name.trim());
+            toast.success('Saved', { id: toastId });
+        } catch (err: any) {
+            toast.error(err?.message || 'Could not save', { id: toastId });
+        } finally {
+            setSaving(false);
+        }
+    }
+
     async function runWorkflow() {
         setNodes((nodes) =>
             nodes.map((n) => ({
@@ -156,7 +206,7 @@ const Workflow = ({ rows, initialNodes, initialEdges, mode = 'edit', viewId }: {
             const res = await fetch('/api/views/workflows/run/stream', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nodes, edges, viewId }),
+                body: JSON.stringify({ nodes, edges, viewId, workflowId }),
             });
 
             if (!res.body) {
@@ -214,6 +264,42 @@ const Workflow = ({ rows, initialNodes, initialEdges, mode = 'edit', viewId }: {
     return (
         <div className="relative w-full h-full flex overflow-hidden">
             <div className="relative flex-grow h-full">
+                {/* Name on the left, actions on the right — both live outside the
+                    nodes.length check so a brand new workflow can be named and saved
+                    before it has any nodes in it. */}
+                {mode === 'edit' && onSave && (
+                    <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && save()}
+                        placeholder="Untitled workflow"
+                        title={name}
+                        className="absolute top-4 left-4 z-10 w-64 rounded bg-slate-900/80 border border-transparent hover:border-slate-700 focus:border-slate-500 px-2 py-1.5 text-sm text-white placeholder:text-slate-600 focus:outline-none transition-colors"
+                    />
+                )}
+
+                {mode === 'edit' && (
+                    <div className="absolute top-4 right-4 z-10 flex gap-2">
+                        {onSave && (
+                            <button
+                                onClick={save}
+                                disabled={saving}
+                                className="bg-slate-700 text-white px-4 py-2 rounded cursor-pointer hover:bg-slate-600 disabled:opacity-50 transition-colors"
+                            >
+                                {saving ? 'Saving…' : 'Save'}
+                            </button>
+                        )}
+                        {nodes.length > 0 && (
+                            <button
+                                onClick={runWorkflow}
+                                className="bg-green-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-green-600 transition-colors"
+                            >
+                                Run
+                            </button>
+                        )}
+                    </div>
+                )}
+
                 {nodes.length === 0 && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         {mode === 'edit' && (<button
@@ -227,12 +313,6 @@ const Workflow = ({ rows, initialNodes, initialEdges, mode = 'edit', viewId }: {
 
                 {nodes.length > 0 && (
                     <div style={{ width: '100%', height: '100%', background: 'black' }}>
-                        {mode === 'edit' && (<button
-                            onClick={runWorkflow}
-                            className="absolute top-4 right-4 z-10 bg-green-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-green-600 transition-colors"
-                        >
-                            Run
-                        </button>)}
                         <ReactFlow
                             nodes={nodes}
                             edges={edges}
@@ -338,7 +418,7 @@ const Workflow = ({ rows, initialNodes, initialEdges, mode = 'edit', viewId }: {
                     {nodeMenu.map((menuNode) => (
                         <div
                             key={menuNode.id}
-                            onClick={() => addNode(menuNode.key, menuNode.name)}
+                            onClick={() => addNode(menuNode)}
                             className="p-3 bg-slate-800 border border-slate-600 rounded cursor-pointer hover:bg-slate-700 hover:border-blue-500 text-white transition-all"
                         >
                             {menuNode.name}

@@ -34,6 +34,17 @@
     color: #fff;
 }
 
+/* TAB BODY
+   Every tab must be constrained to the space left under the header. min-height: 0 is the
+   load-bearing part — without it a flex item cannot shrink below its content-based minimum,
+   so an h-full child resolves against the full 100vh and overflows past the bottom edge
+   (which html/body's overflow:hidden then clips with no scrollbar to reach it). */
+.tabPanel {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
 /* TABLE */
 .tableWrapper {
     flex: 1;
